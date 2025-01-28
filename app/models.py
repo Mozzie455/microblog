@@ -1,3 +1,4 @@
+from hashlib import md5
 from app import login
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
@@ -13,6 +14,8 @@ class User(UserMixin,db.Model):
     username: so.Mapped[str] = so.mapped_column(sa.String(64), index=True, unique=True)
     email: so.Mapped[str] = so.mapped_column(sa.String(120), index=True, unique=True)
     password_hash: so.Mapped[Optional[str]]= so.mapped_column(sa.String(256))
+    about_me: so.Mapped[Optional[str]] = so.mapped_column(sa.String(140))
+    last_seen: so.Mapped[Optional[datetime]] = so.mapped_column( default=lambda:datetime.now(timezone.utc))
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -24,6 +27,10 @@ class User(UserMixin,db.Model):
     @login.user_loader
     def load_user(id):
         return db.session.get(User,int(id))
+    
+    def avatar(self,size):
+        digest = md5(self.email.lower.lower().encode('utf-8')).hexdigest()
+        return f'https://www.gravatar.com/avater/{digest}?d=identicon&s={size}'
         
 
 
